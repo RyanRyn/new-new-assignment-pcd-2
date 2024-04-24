@@ -8,7 +8,7 @@
 #pragma warning (disable:4146)
 #pragma warning(disable:6031)
 #define coach_size 40
-
+#define i 100
 typedef struct {
 	int day, month, year;
 } date;
@@ -37,10 +37,10 @@ typedef struct {
 typedef struct {
 	char bookingId[6], memberId[6], trainId[6];
 	char paymentInfo[20], ticketStatus[20];
-	date bookingDate, departureDate;//dapartureData ���ܲ���ֻҪ��trainid�Ϳ����һ�ȥ �𰸣��ֲ�������sql����ͬʱ�úܶ�file ҪҲ�ǿ��� �鷳��Ҫ��
+	date bookingDate, departureDate;//dapartureData 可能不用只要有trainid就可以找回去 答案：又不是在做sql不能同时拿很多file 要也是可以 麻烦到要死
 	int pax;
 	float amount;
-}ticketBooking;//����ticketseat
+}ticketBooking;//还有ticketseat
 
 void logintype(bool isAdmin);
 bool userLogin(bool isAdmin, char loginId[7]);
@@ -75,11 +75,11 @@ bool modifyMember(char modifyId[6]);
 bool modifySchedule(char modifyId[6]);
 bool modifyTicket(char modifyId[6]);
 bool modifyTrainSeat(char modifyTrainId[6], char seat[]);
-//Ӧ��ֻ��booking id��edit��Ҫ��������
+//应该只有booking id的edit需要在外面做
 
 void displayTrainSeat(char* strptr);
 void adjustSchedulePositionToSeat(FILE* adjustedFile, char destinationId[6]);
-void adjustFilePositionToSelectedLine(FILE* adjustedFile, char destinationId[6]);//���кܶ�ط�������
+void adjustFilePositionToSelectedLine(FILE* adjustedFile, char destinationId[6]);//还有很多地方可以用
 long int findFileSize(FILE* fileName);
 void getCurrentDate(int* day, int* month, int* year);
 
@@ -406,7 +406,7 @@ void addTrainSchedule() {
 	fclose(scheduleFile);
 }
 
-bool addTicket(char memberId[6], char selectedTrainId[6]) {//���������gettraindata ֮���Կ���
+bool addTicket(char memberId[6], char selectedTrainId[6]) {//这个可以用gettraindata 之后试看看
 	ticketBooking newTicket;
 	trainScheduling selectedTrainData;
 	FILE* bookingFile;
@@ -470,7 +470,7 @@ employee findEmployeeData(char findId[7]) {
 	fread(&foundData, sizeof(employee), 1, userfile);
 	fclose(userfile);
 	return foundData;
-}//��߱�������cmp�ó����ĶԲ���
+}//这边本身不会cmp拿出来的对不对
 
 member findMemberData(char findId[6]) {
 	member foundData = { 0 };
@@ -965,9 +965,9 @@ void getTicketData(ticketBooking* getData, bool allowIdInput) {
 			printf("2. enter memberId\n");
 			printf("3. enter trainId\n");
 		}
-		printf("4. enter paymentInfo\n");//���Ҫ��
+		printf("4. enter paymentInfo\n");//这个要改
 		printf("5. enter ticketStatus\n");
-		printf("6. enter bookingDate\n");//Ӧ��ֻ��4��5��6���Ը�7�϶����� 9����8 8�Ļ���Ҫ������ 
+		printf("6. enter bookingDate\n");//应该只有4，5，6可以改7肯定不行 9跟着8 8的话需要重新买 
 		printf("7. enter departureDate\n");
 		printf("8. enter pax\n");
 		printf("9. enter amount\n");
@@ -1215,7 +1215,7 @@ bool modifyTicket(char modifyId[6]) {
 	long int position;
 	char ch;
 
-	edit = findTicketData(modifyId);//��߻�Ҫһ��findbookingseat
+	edit = findTicketData(modifyId);//这边还要一个findbookingseat
 	selectedTrainData = findTrainScheduleData(edit.trainId);
 	int lengthSeat = selectedTrainData.coach * coach_size + 1;
 	char* strSeatPointer = (char*)calloc(lengthSeat, sizeof(char));
@@ -1266,7 +1266,7 @@ bool modifyTicket(char modifyId[6]) {
 	fclose(ticketFile);
 	fclose(tempFile);
 	return 0;
-}//��û���ܹ�
+}//还没试跑过
 
 bool modifyTrainSeat(char modifyTrainId[6], char seat[]) {
 	FILE* scheduleFile;
@@ -1353,10 +1353,10 @@ void getCurrentDate(int* day, int* month, int* year) {
 	*year = localTime->tm_year + 1900;
 }
 
-//���ڵ������� �� modify schedule��ʱ������Ҫ�����������λ��ȫ����� cancel
-//modify ticket �Ļ����������� ���� ticket
-//Ҫ��һ���� train �� seat�Ϳ����ҵ����� ticket �Ķ���
-//log book��û��
-//Ȩ�޻��кܶ�����
+//现在的问题是 当 modify schedule的时候我需要把所有买过座位的全部变成 cancel
+//modify ticket 的话是有类似于 买新 ticket
+//要做一个找 train 跟 seat就可以找到那张 ticket 的东西
+//log book还没做
+//权限还有很多问题
 
-//���ܿ��Զ࿪һ��getticdketdata for add ��modify search�Ļ�����ԭ����
+//可能可以多开一个getticdketdata for add 跟modify search的话就用原本的
